@@ -1,0 +1,2 @@
+VanaParse Standalone 1.1.0.0
+Embedded VanaCore 0.3.3.0
