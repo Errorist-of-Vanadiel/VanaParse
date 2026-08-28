@@ -1,0 +1,39 @@
+VanaParse 1.1.0.0 - Update Notes
+
+This update focuses on simplifying VanaParse, improving HUD clarity and making commands more intuitive.
+
+***HIGHLIGHTS***
+Simplified command structure using a natural verb-first format such as:
+
+//vp show magic
+//vp hide magic
+//vp filter Aminon
+//vp unfilter Aminon
+//vp report full party
+
+Expanded reporting so users can choose:
+- what to report
+- who to report
+- where to send it
+
+Added detailed player performance reporting with support for:
+- Physical
+- Magic
+- Ranged
+- Healing
+- Recovery/Status Removal
+- Pet contributions
+- Defense and damage taken
+
+Added deeper Magic tracking by spell, element, cast count, average damage and Magic Burst performance.
+Added Recovery/Status tracking for actions like Healing Waltz, Erase, Poisona and similar effects.
+Improved Dynamic HUD behavior and category visibility.
+Added dedicated Magic damage support while allowing entire categories to be shown or hidden.
+Improved target tracking and target-specific damage handling.
+Improved HUD alignment with numeric columns right-justified and text columns left-justified.
+Removed redundant, outdated and low-value report paths.
+Cleaned the release package to remove historical, validation, character-specific and unnecessary development files.
+
+Continued support for filters, named splits, compact views, detailed reports and paced chat output.
+
+The goal of this revision is to make VanaParse easier to understand and use without sacrificing the deeper combat analysis available when needed.
