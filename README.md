@@ -1,296 +1,361 @@
-# VanaParse Standalone 1.1.3.0
+# VanaParse Standalone 2.1.4
 
-VanaParse is a real-time Final Fantasy XI combat parser for Windower 4. It tracks alliance-wide combat performance while preserving detailed data for reports, filters, splits, target analysis, pets, magic, healing, recovery and defensive metrics.
+VanaParse is a real-time Final Fantasy XI combat parser for Windower 4. Version 2.1.4 continues the clean parser-only rebuild from the last known-good pre-split source. This release contains only supported combat-parser functionality and no inactive legacy feature settings or command stubs.
 
-VanaParse は Windower 4 用のリアルタイム Final Fantasy XI 戦闘解析アドオンです。Alliance 全体の combat performance を追跡し、report、filter、split、target analysis、pet、magic、healing、recovery、defensive metrics の詳細データを保持します。
+VanaParse は Windower 4 用のリアルタイム Final Fantasy XI 戦闘解析アドオンです。Version 2.1.4 は、最後に安定していた split 前の source を基準にした clean parser-only rebuild を継続します。この release には supported combat-parser functionality のみを含み、inactive legacy feature setting や command stub は含みません。
 
 **Author:** Errorist of Vana'diel  
 **License:** MIT  
-**Standalone version:** 1.1.3.0  
+**Version:** 2.1.4  
 **Embedded VanaCore:** 0.3.3.1
 
-**作者:** Errorist of Vana'diel  
-**ライセンス:** MIT  
-**Standalone バージョン:** 1.1.3.0  
-**内蔵 VanaCore:** 0.3.3.1
+## Install / インストール
 
-## Upgrade / アップグレード
+Copy the included `VanaParse` folder over `Windower4/addons/VanaParse/`, then reload with `//lua r VanaParse` or restart Windower.
 
-Copy the included `VanaParse` folder over your existing `Windower4/addons/VanaParse/` folder, then reload VanaParse with `//lua r VanaParse` or restart Windower.
+同梱の `VanaParse` folder を `Windower4/addons/VanaParse/` に上書きし、`//lua r VanaParse` または Windower の再起動で再読み込みします。
 
-同梱の `VanaParse` フォルダを既存の `Windower4/addons/VanaParse/` に上書きし、`//lua r VanaParse` または Windower の再起動で VanaParse を読み込み直します。
+This clean release does not include generated `settings.xml`, combat logs or learned runtime data. Compatible existing settings are migrated automatically.
 
-This release intentionally does **not** include `settings.xml` or the generated `data/` directory. Existing HUD position, size and compatible preferences therefore remain in place. Existing logs, learned enemy data and historical files are also left untouched.
+この clean release には生成済み `settings.xml`、combat log、learned runtime data は含まれません。互換性のある既存 setting は自動的に移行されます。
 
-この release には意図的に `settings.xml` と生成済み `data/` directory を含めていません。そのため既存の HUD position、size、互換性のある preference は保持されます。既存の logs、learned enemy data、historical files も上書きされません。
+For the complete command reference, read **`COMMAND_DIRECTORY.md`** inside the VanaParse folder.
 
-If a setting is newly introduced, VanaParse adds its default during configuration migration. The previous stock report delay of 0.65 seconds migrates to 1.05 seconds, while a user-selected custom delay is preserved.
+完全な command reference は VanaParse folder 内の **`COMMAND_DIRECTORY.md`** を参照してください。
 
-新しく追加された setting は configuration migration 時に default が追加されます。従来の標準 report delay 0.65 秒は 1.05 秒に移行しますが、user が変更した custom delay は保持されます。
+## HUD model / HUD モデル
 
-## Default Compact HUD / 標準 Compact HUD
+The main HUD can use `Self`, `Local`, `Party`, `Alliance`, `All`, `All Parties` or `Custom` mode. `All` includes observable contributors to the current encounter. `All Parties` is a nearby-fight observer that does not require your Party/Alliance to claim or establish the encounter.
 
-Fresh installs start in Compact view.
+Main HUD は `Self`、`Local`、`Party`、`Alliance`、`All`、`All Parties`、`Custom` mode を使用できます。`All` は current encounter の observable contributor を含み、`All Parties` は local claim を必要としない nearby-fight observer です。
 
-新規 install は Compact view で開始します。
+Optional `All` and `All Parties` HUDs share the same underlying parser/action stream. They do not independently parse or duplicate damage.
 
 ```text
-VanaParse | Whitegate (J-7) | Elapsed 00:00:00 | Active 00:00:00
-View: Compact | Mode: Alliance | Filter: None
-Target: Aminon | HP: 111,111/333,333 (33%) | Incoming: Dancing Fullers
-
-# | Player | Job | Tot Dmg % | Tot Dmg | DPS | Acc | WS H/M | WS Avg
+//vp hud all on
+//vp hud allparties on
+//vp hud all view compact
+//vp hud allparties view dynamic
+//vp hud all rows 12
+//vp hud allparties rows all
 ```
 
-When there is no target, the entire target row remains blank. The row is still reserved so the HUD does not repeatedly change height. A separate natural spacer remains before the parsing column headings.
-
-Target がない場合、target row 全体は blank のままです。HUD の高さが頻繁に変化しないよう row 自体は保持され、parsing column heading の前には別の spacer も維持されます。
-
-The metadata/header block is constrained to the parsing-table width. Variable target, filter and incoming-action text is shortened rather than widening the HUD.
-
-Metadata/header block は parsing table の width を超えないよう制限されます。長い target、filter、incoming-action text は HUD を広げず短縮表示されます。
-
-## Job and Subjob / Job と Subjob
-
-The Job column is dynamic.
-
-Job column は dynamic です。
+Observed All Parties encounters remain separated. Use the target or observer controls to select the fight you want to inspect.
 
 ```text
-//vp job on       -> RDM
-//vp sub on       -> RDM/DNC
-//vp sub off      -> RDM
-//vp job off      -> Job column removed
+//vp observe target
+//vp observe next
+//vp observe previous
+//vp observe <enemy name>
 ```
 
-Natural aliases such as `jobs`, `subjob`, `show job`, `hide job`, `show sub` and `hide sub` are accepted.
+## Header and parser rows / Header と parser row
 
-`jobs`、`subjob`、`show job`、`hide job`、`show sub`、`hide sub` などの natural alias に対応します。
+The HUD header, target line and parser table remain on the stable pre-split rendering path. Only supported parser rows are rendered.
 
-## Pinning and true rank / Pin と true rank
+HUD header、target line、parser table は安定していた split 前の rendering path を維持し、supported parser row のみを表示します。
 
-Pinning changes only visual placement. The `#` column always shows the actor's true rank according to the active sort metric. Reports also use the natural performance order rather than the pinned display order.
+`Zone:` is intentionally omitted from the title. If a valid map position cannot be resolved, only the short zone name is displayed; VanaParse never displays `(?-?)`.
 
-Pin は visual placement のみを変更します。`#` column は active sort metric に基づく true rank を常に表示し、report も pinned display order ではなく natural performance order を使用します。
+## Universal command grammar / 共通 command grammar
 
-Examples / 例:
+VanaParse uses one consistent grammar wherever practical:
+
+- True On/Off features toggle when used alone, such as `//vp job` and `//vp wsavg`.
+- Bare `//vp view` cycles Compact → Dynamic → Full → Physical → WS, then stops and lists all Views. `//vp mode`, `//vp theme` and `//vp sort` cycle normally.
+- `on/show/enable` mean On.
+- `off/hide/disable` mean Off.
+- `toggle` explicitly toggles.
+- `status/state/settings` inspect without changing where supported.
+- `default/reset` restores that feature's default where supported.
+- Unique shorthand is accepted when it cannot collide with older commands, for example `//vp dynamic`, `//vp dark` and `//vp contrast dark`.
+- Older explicit syntax remains valid.
+
+既存 command を壊さないことを優先し、ambiguous shorthand は old behavior を保持します。たとえば bare `//vp magic` は従来どおり Magic display toggle で、Magic View を選ぶ場合は `//vp view magic` を使用します。
+
+## View, Mode and Filter
+
+Bare selectors cycle:
 
 ```text
-//vp pin self
-//vp self pin
-//vp unpin self
-//vp pin local
-//vp pin party
-//vp pin alliance
-//vp pin Errorist
-//vp unpin Errorist
-//vp unpin all
-//vp pin default
+//vp view
+//vp mode
+//vp theme
+//vp sort
 ```
 
-`local` means the characters you identify as locally managed on that client. Self is always recognized as local.
-
-`local` はその client で locally managed として指定した character を意味します。Self は常に local として認識されます。
+Explicit View examples:
 
 ```text
-//vp local add Errorist Fubarist Bobsuruncle
-//vp local remove Fubarist
-//vp local show
-//vp local clear
+//vp view compact
+//vp view dynamic
+//vp view physical
+//vp view magic
+//vp view ranged
+//vp view healing
+//vp view pet
+//vp view ws
 ```
 
-## Reporting / レポート
-
-The default report queue delay is **1.05 seconds**.
-
-標準 report queue delay は **1.05 秒** です。
-
-Set the persistent destination once:
-
-送信先は一度設定すれば保持されます。
+Joined and natural-order forms are also accepted:
 
 ```text
-//vp set report party
-//vp set report alliance
-//vp set report self
-//vp set report linkshell
-//vp set report linkshell2
-//vp set report tell PlayerName
+//vp view wsdetails
+//vp wsdetails view
+//vp acc hide
+//vp show acc
 ```
 
-Compact view omits `Report:` to preserve width. Larger views and `//vp status` can still show the saved destination.
+`show` and `hide` operate on recognized parser categories/columns regardless of the current View. Supported common aliases include `acc`, `racc`, `wsacc`, `wshm`, `wsavg`, `physical`, `ws`, `sc`, `magic`, `ranged`, `pet`, `healing`, `recovery` and `defense`.
 
-Compact view では width を抑えるため `Report:` を省略します。Larger view と `//vp status` では saved destination を確認できます。
 
-Report tokens are intentionally flexible. These forms can describe the same request:
-
-Report token の順序は柔軟です。次のような command は同じ intent を表現できます。
+Enemy filtering remains a first-class feature:
 
 ```text
-//vp report Papesse full party
-//vp report full Papesse party
-//vp Papesse report full party
-
-//vp report Papesse magic party
-//vp magic report Papesse party
+//vp filter
+//vp filter target
+//vp filter EnemyA
+//vp unfilter EnemyA
+//vp filter clear
 ```
 
-A destination specified in one report overrides the saved destination for that report only.
+`filter current` remains as a backward-compatible alias for `filter target`.
 
-個別 report で送信先を指定した場合、その report のみ saved destination を override します。
+## Job / Subjob
 
-### Split reports / Split report
+Compact defaults to `Job`. Every other View defaults to `Job/Sub`. The entire Job column can be hidden.
+
+When direct party/check metadata is unavailable, VanaParse can infer a support job conservatively from job-exclusive spells and abilities. Master-Level support jobs are treated as potentially reaching level 59, so actions available by level 59 are not used as main-job proof. Stronger later evidence can replace a lower-confidence inference.
+
+Examples include a known WHM using Gravity -> `/RDM`, a known COR using Waltz/Jig actions -> `/DNC`, a known WAR using Jump -> `/DRG`, and Sublimation/Light Arts -> `/SCH`. Reraise is treated specially because SCH requires Scholar state/Addendum access; observed Scholar state wins `/SCH`, otherwise `/WHM` may be used as a lower-confidence passive inference until stronger evidence appears.
+
+The local player's full parser row uses blue as a secondary/default row color. Existing semantic colors such as accuracy/performance highlights take priority over the blue row color.
 
 ```text
-//vp report split 1
+//vp job
+//vp job on
+//vp job off
+//vp job auto
+//vp sub on
+//vp sub off
+//vp sub auto
 ```
 
-Reports from Split 1 through the current end of the parse.
+VanaParse uses direct Party/Alliance metadata when available, passive `/check` metadata received by the client and conservative job-exclusive action evidence. It does not automatically issue `/check` just to identify jobs.
 
-Split 1 から現在の parse end まで report します。
+## Active timer / Active timer
+
+Active time measures battle participation, not merely whether a living enemy still exists.
+
+- 0–29 seconds without qualifying activity: Active continues normally.
+- At 30 seconds: the 30-second gap becomes provisional and the confirmed Active value rolls back once, for example `Active 00:10:20 +00:30 (Idle)`.
+- Activity before 60 seconds: the provisional gap is restored into Active, briefly showing `(Restored XXs)`, and Active immediately continues counting.
+- At 60 seconds: the idle minute is omitted and Active pauses, briefly showing `(Paused | Idle 60s Omitted)`.
+- Activity after timeout: Active resumes from the last confirmed value and briefly shows `(Resumed)`.
+
+## DPS display refresh
+
+Combat actions and damage are recorded immediately. Reports use current exact DPS. The **HUD DPS value refreshes every 5 seconds by default** so the number is readable rather than changing every rendered frame.
+
+Combat data は即時記録されます。Report は exact DPS を使用し、HUD 上の DPS 表示のみ default 5 秒ごとに refresh します。
+
+## Reporting / Report
+
+Report Views now mean the metrics defined by that View.
 
 ```text
-//vp report split 1-2
+//vp report compact
+//vp report dynamic
+//vp report view
 ```
 
-Reports only the interval between Split 1 and Split 2.
+`report view` uses the currently active View. `report compact` explicitly uses Compact metrics even if the HUD is currently Dynamic.
 
-Split 1 と Split 2 の間だけを report します。
-
-Splits combine with categories, enemies and destinations:
-
-Split は category、enemy、destination と組み合わせられます。
+Metric selectors narrow a View:
 
 ```text
-//vp report split 1 ranged
-//vp report split 1-2 magic
-//vp report Papesse split 1-2 ws party
-//vp Papesse report pet split 2 alliance
+//vp report accuracy compact party
+//vp report compact accuracy party
 ```
 
-For explicit actor scope, use `scope`/`mode`/`actors`/`from`:
+Both mean: report Accuracy for all applicable actors in Compact context and send it to Party.
 
-Actor scope を明示する場合は `scope` / `mode` / `actors` / `from` を使用します。
+A player name narrows the report to that actor even if the actor is outside the currently visible HUD rows, as long as VanaParse retained data for that actor:
 
 ```text
-//vp report Papesse full scope party to alliance
+//vp report compact PlayerA party
+//vp report accuracy compact PlayerA party
 ```
 
-This reports Party actor data to Alliance chat.
+The complete composable report grammar, actor scopes, split syntax, destinations and aliases are documented in `COMMAND_DIRECTORY.md`.
 
-これは Party actor data を Alliance chat へ report します。
+Supported destinations are only HUD/Self, Tell, Party, Alliance, Linkshell and Linkshell2. Public/broadcast channels such as Say, Yell, Shout, Unity, Assist, JP, EN and EU are blocked.
 
-## Target and Incoming / Target と Incoming
-
-When a current target exists, the target line shows its name, reliable HP information and the currently registered incoming enemy ability or spell.
-
-Current target が存在する場合、target line には name、信頼できる HP information、現在登録されている incoming enemy ability/spell が表示されます。
-
-```text
-Target: Aminon | HP: 33% | Incoming: Dancing Fullers
-```
-
-If reliable absolute maximum HP is known:
-
-信頼できる absolute maximum HP が判明している場合:
-
-```text
-Target: Aminon | HP: 111,111/333,333 (33%) | Incoming: Dancing Fullers
-```
-
-Incoming actions remain visible while readying/casting. When the action resolves or is interrupted, the warning flashes twice and clears. Enemy-action detection is based on action/resource data rather than English combat-log text.
-
-Incoming action は readying/casting 中保持されます。Action が resolve または interrupt されると warning は 2 回 flash して消えます。Enemy-action detection は English combat-log text ではなく action/resource data を基準にします。
-
-## HUD appearance / HUD 表示
-
-Background opacity uses a simple 0–100 scale and accepts arbitrary numeric values.
-
-Background opacity は 0–100 の簡単な scale を使用し、任意の数値を指定できます。
-
-```text
-//vp bg 0
-//vp bg 43
-//vp bg 79
-//vp bg 100
-```
-
-`0` is fully transparent and `100` is fully opaque.
-
-`0` は完全 transparent、`100` は完全 opaque です。
+## Themes, background and font / Theme、background、font
 
 Themes:
 
 ```text
 //vp theme dark
 //vp theme light
-//vp inverse
-//vp theme highcontrast
-//vp hc
+//vp theme contrastdark
+//vp theme contrastlight
+//vp contrast dark
 ```
 
-Light/Inverse remaps warning and status colors for visibility rather than simply inverting RGB values. Custom RGB commands are intentionally not exposed; advanced users may edit configuration values directly.
+Contrast themes default to **80% opacity / 20% transparency** and remember their own background-opacity setting separately from normal Dark/Light.
 
-Light/Inverse は RGB を単純反転せず、warning/status color を visibility に合わせて remap します。Custom RGB command は意図的に公開していません。Advanced user は必要に応じ configuration value を直接編集できます。
-
-## Existing views and analysis / 既存 view と analysis
-
-The full 1.1.0.0 parser architecture remains in this release. Existing combat capture, dynamic/specialized views, filters, actor performance, magic detail, Magic Bursts, ranged attacks, pets, healing, recovery, defense, target filtering, logging, enemy registry and session/split tools remain available unless explicitly changed above.
-
-1.1.0.0 の full parser architecture はこの release に保持されています。既存の combat capture、dynamic/specialized view、filter、actor performance、magic detail、Magic Burst、ranged attack、pet、healing、recovery、defense、target filter、logging、enemy registry、session/split tool は上記で明示的に変更されたものを除き維持されています。
-
-Use `//vp help` in game for the concise command list for the installed build.
-
-Install された build の concise command list は game 内で `//vp help` を使用してください。
-
-
-## Zone/Teleport Safety / Zone・Teleport 安全処理
-
-VanaParse 1.1.3.0 pauses entity-dependent parsing during full zone changes, instance entry and detected large in-zone teleport/submap transitions. Unsafe first actions are dropped rather than being processed against stale entity state. No cumulative SESSION log is written on every zone transition.
-
-VanaParse 1.1.3.0 は full zone change、instance entry、large in-zone teleport／submap transition の間、entity-dependent parsing を一時停止します。State が不完全な first action は stale entity data に対して処理せず安全に破棄します。Zone transition ごとの cumulative SESSION log は書き込みません。
-
-## Points Row / Points Row
-
-The Points row is optional and passive. VanaParse does not inject currency requests. It uses naturally received packets and keeps the row to one line maximum.
-
-Points row は optional かつ passive です。VanaParse は currency request を inject せず、自然に受信した packet のみを使用し、row は最大 1 行に保ちます。
+Background changes opacity only:
 
 ```text
-//vp points on
-//vp points off
-//vp show points
-//vp hide points
+//vp bg 76
+//vp bg 76%
+//vp background 76%
+//vp opacity 76%
 ```
 
-Relevant examples include Gallimaufry, Mog Segments, Temenos/Apollyon Units, Nyzul Tokens and EP/hour when observed.
-
-表示対象には observed data に応じて Gallimaufry、Mog Segments、Temenos/Apollyon Units、Nyzul Tokens、EP/hour などが含まれます。
-
-## Other-player Job Inference / 他 Player Job 推定
-
-When Windower does not expose another player's job directly, VanaParse can infer a main job conservatively from main-job-exclusive/high-level actions. It never guesses from generic abilities shared with support jobs. Support-job inference requires separate evidence after a different main job is already known.
-
-Windower が他 player の job を直接提供しない場合、VanaParse は main-job-exclusive／high-level action から main job を保守的に推定できます。Support job と共有できる generic ability だけでは推測しません。Support job の推定には、別の main job が既に判明している状態で独立した evidence が必要です。
-
-## Pet Identity / Pet Identity
-
-Pet damage is keyed through the pet actor and master relationship, not the pet display name. `owner_id` is preferred, with `pet_index` fallbacks for cases where owner data is missing. Two different players may therefore use identically named pets without their damage merging together.
-
-Pet damage は pet display name ではなく pet actor と master relationship で識別します。`owner_id` を優先し、owner data がない場合は `pet_index` を fallback として使用するため、別 player が同名 pet を使用しても damage は混在しません。
-
-## All Observed Participants / 観測可能な全参加者
-
-VanaParse 1.1.3.1 adds an encounter-bound `All` actor scope. Once your Party/Alliance has established an encounter, VanaParse can retain outside players and pets that your client observes directly acting on the same known enemy. This is intended for shared bosses and other fights that can exceed 18 contributors.
-
-VanaParse 1.1.3.1 では encounter に限定した `All` actor scope を追加しました。Party/Alliance が encounter を確立した後、同じ既知 enemy に直接 action する outside player／pet を client が観測できる場合、その data を保持できます。18 人を超える shared boss などを想定しています。
+Font family and quarter-point font sizes are supported:
 
 ```text
-//vp mode all
-//vp scope all
-//vp set scope all
+//vp font Consolas
+
+Only in-game confirmed fixed-column fonts are accepted. VanaParse 2.1.4 approves Consolas, Courier New, Cascadia Code and Lucida Console; unsupported fonts are rejected without changing the HUD.
+//vp font Courier New
+//vp font list
+//vp font size 6.25
+//vp fontsize 6.5
+//vp size 6.75
+//vp set size 7
 ```
 
-`Alliance` remains the default. `All` means all relevant combat contributors observed by the local FFXI client, not every player in the zone. Unrelated nearby fights are not intentionally merged into the encounter. HUD row limits still control how many ranked actors are visible; `//vp set rows all` can show every retained row.
+Font size is clamped to 5–36 points and normalized to the nearest 0.25 point.
 
-Default は引き続き `Alliance` です。`All` は zone 内の全 player ではなく、local FFXI client が観測した relevant combat contributor を意味します。近くの無関係な fight は encounter に意図的に統合しません。HUD row limit は表示人数のみを制御し、`//vp set rows all` で保持している全 row を表示できます。
+
+### Universal Show, Hide, Include and Exclude
+
+Every visible parser field, parser category and named action in a detail View can be addressed by the universal controls. Show/Hide changes presentation only. Include/Exclude changes the calculated readout without deleting raw captured combat data.
+
+```text
+//vp hide low
+//vp show parry
+//vp exclude Savage Blade
+//vp include Savage Blade
+//vp Cure hide
+//vp melee exclude
+//vp physical include
+```
+
+`melee` controls melee only. `physical` is the intentional grouped control for Melee + WS + Skillchain. Joined/reversed command forms remain supported when the request can be resolved unambiguously.
+
+## Help, Status, Settings, Version and Health
+
+Version only:
+
+```text
+//vp version
+```
+
+The command returns `VanaParse: Version 2.1.4`. Help headers also show the installed version.
+
+```text
+//vp help
+//vp help view
+//vp help mode
+//vp help filter
+//vp help reports
+//vp help theme
+//vp help font
+
+//vp status
+//vp settings
+//vp settings <section>
+//vp health
+```
+
+Help pages include `[State | Setting]` where applicable. `Status` describes current runtime state. `Settings` describes configuration. `Health` reports protected VanaParse error counters so command/runtime regressions can be detected without crashing the addon.
+
+## Saved settings profiles / Saved settings profile
+
+Named profiles save behavior/settings, not combat totals, targets, splits or temporary encounter state.
+
+```text
+//vp save multibox
+//vp save settings multibox
+//vp restore multibox
+//vp saves
+//vp delete setting multibox
+//vp default
+//vp return
+```
+
+`//vp default` restores built-in behavior defaults while preserving named profiles. `//vp return` is a one-step runtime return to the configuration used immediately before the most recent profile restore/default operation.
+
+## Stability model / Stability model
+
+VanaParse 2.1.4 retains the 2.1.1 fail-closed parser model: missing, stale or transitional data should be skipped rather than treated as fatal.
+
+- Full-zone and large in-zone teleport transition guards.
+- Protected action, packet, command, zone, load/login, prerender and unload paths.
+- Generation checks and transient-state clearing across transitions.
+- Secondary-HUD circuit breakers isolate repeated HUD failures from the main parser.
+- Observer encounters are bounded and expire when stale.
+- Combat logs are batch-written and learned registry saves are throttled/deferred.
+- A malformed or stale combat event may be dropped rather than allowed to stop VanaParse.
+
+The FFXI client only supplies combat actions it actually receives, so `All` and `All Parties` mean all **observable** applicable participants, not every player everywhere in the zone.
+
+## Semantic Versioning
+
+Starting with 2.0.0, VanaParse uses `MAJOR.MINOR.PATCH` Semantic Versioning. Compatible feature releases increment MINOR, backward-compatible fixes increment PATCH and incompatible public behavior/configuration redesigns increment MAJOR.
+
+
+CHANGE LOG - 16 Septemner 2026
+
+## 2.1.4
+
+- Expanded passive Job/Sub inference without changing raw combat capture. The support-job ceiling is treated as level 59 for Master Level characters.
+- Added support-job evidence from unique spells and safe job-specific abilities, including Gravity -> /RDM, Sublimation/Light Arts -> /SCH, Waltz/Jig families -> /DNC and Jump -> /DRG when the known main job differs.
+- Added conservative Reraise disambiguation: observed Scholar state wins /SCH; otherwise a non-WHM/non-SCH main may infer /WHM at lower confidence and later stronger evidence can correct it.
+- The local player row now uses blue as a secondary/default row color. Existing semantic colors remain primary and are not overwritten.
+- Added universal Show/Hide and Include/Exclude controls for visible fields, categories and named detail actions across all Views.
+- Show/Hide affects presentation only; Include/Exclude changes calculated output while preserving raw captured combat data.
+- Named WS exclusions recalculate WS damage, attempts, hits, misses, averages, total damage, DPS, sorting and reports without deleting the underlying action data.
+- Named spell/recovery exclusions now flow through detail rows and adjusted aggregate calculations where the parser retains per-action counters.
+- Separated `Melee` from the broader `Physical` group: Melee controls melee only; Physical intentionally groups Melee + WS + Skillchain.
+- Standardized Defense magical damage-taken label as `MagicT`.
+- Preserved Perfect Dodge forced-miss filtering so melee misses during the observed Perfect Dodge window do not lower Accuracy.
+- Repeated Sort on the same category, subcategory, metric or named action now reverses High-to-Low / Low-to-High; explicit `asc` / `desc` is also accepted.
+- Explicit Sort clears pins so visible row order matches the requested ranking.
+- Added hierarchical Sort targets using the same control namespace as Show/Hide and Include/Exclude.
+- Added selective bold rendering for the title, command/status labels and table header rows using one masked companion object per HUD rather than per-cell overlays.
+- Expanded Job/Sub inference from observed job-exclusive spells and abilities, including Gravity -> /RDM, Sublimation/Light Arts -> /SCH, DNC Waltz/Jig families -> /DNC, Jump -> /DRG and conditional Reraise -> /WHM or /SCH.
+
+# VanaParse Standalone Changelog
+
+## 2.1.3 - Confirmed fonts and command flexibility
+
+- Font selection is strict: only fonts confirmed in-game to preserve VanaParse fixed-column alignment are accepted.
+- Confirmed approved fonts: Consolas, Courier New, Cascadia Code and Lucida Console.
+- Removed/rejected DejaVu Sans Mono, Cousine, Liberation Mono, PT Mono and Go Mono after in-game testing showed they collapse the parser table.
+- `//vp font list` shows the approved fonts. Unsupported font names are rejected without changing the active HUD font.
+- Restored Sort to Help and Settings menus.
+- `show` / `hide` accept recognized parser categories and common column controls regardless of current View, including reversed forms such as `//vp acc hide`.
+- Joined/reversed View names such as `//vp view wsdetails` and `//vp wsdetails view` resolve directly.
+- Bare `//vp view` cycles only Compact → Dynamic → Full → Physical → WS, then stops and lists all View choices.
+
+## 2.1.2 - Clean parser-only rebuild
+
+- Rebuilt directly from the last known-good pre-split VanaParse 2.1.1 source.
+- Removed Points, Progression, Scan, Limbus tracking and all unsupported/dead settings, handlers, commands and compatibility stubs associated only with those systems.
+- Kept supported combat parser functionality, reports, filters, pins, job metadata, profiles and secondary HUD behavior.
+- Preserved the stable pre-split single-text-object HUD renderer and existing font path without redesign.
+- Verified the canonical View cycle: Compact, Dynamic, Full, Physical, WS, WS Details, Ranged, Magic, Magic Details, Pet, Healing, Healing Details, Recovery, Recovery Details and Defense.
+- Verified Dynamic retains its stable core with an 18-column maximum and data-driven optional columns.
+- Added comma formatting to WS hit/miss counts at 10,000 and above while preserving ungrouped values below 10,000.
+- Verified enemy Perfect Dodge creates a forced-miss window: melee misses during the observed window are excluded from Accuracy attempts/misses by default while combat Active time continues.
+- `//vp default` performs a hard visual reset: current VanaParse HUD primitives are destroyed, canonical defaults are restored in place, fresh HUD primitives are created and the clean state is saved.
+- Named saved settings remain preserved independently of the active/default configuration.
+- Preserved the existing VanaParse help/menu command structure while adding color-coded chat presentation.
+- Help/menu labels and literal `//vp` commands use green, selectable options/current values use blue, and descriptions/separators use white.
+- Help/menu coloring uses Windower chat color controls only and does not alter parser HUD rendering, fonts, table layout or combat logic.
+- No font whitelist or font-rendering redesign is included in this release.
